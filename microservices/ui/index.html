@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Microservices UI</title>
+  <style>body{font-family:Arial;padding:20px} .svc{margin-bottom:1rem}</style>
+</head>
+<body>
+  <h1>Microservices UI</h1>
+  <div id="services"></div>
+
+  <script>
+    const services = [
+      { name: 'User', url: 'http://localhost:8081' },
+      { name: 'Payment', url: 'http://localhost:8082' },
+      { name: 'Transaction', url: 'http://localhost:8083' },
+      { name: 'Fraud', url: 'http://localhost:8084' },
+      { name: 'Notification', url: 'http://localhost:8085' },
+      { name: 'Reporting', url: 'http://localhost:8086' }
+    ];
+
+    const container = document.getElementById('services');
+
+    services.forEach(s => {
+      const el = document.createElement('div');
+      el.className = 'svc';
+      el.innerHTML = `<strong>${s.name}</strong>: <span id="${s.name}">loading...</span>`;
+      container.appendChild(el);
+
+      fetch(s.url + '/').then(r => r.text()).then(text => {
+        document.getElementById(s.name).textContent = text;
+      }).catch(e => {
+        document.getElementById(s.name).textContent = 'unreachable';
+      })
+    });
+  </script>
+</body>
+</html>
