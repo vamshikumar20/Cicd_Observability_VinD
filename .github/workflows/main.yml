@@ -11,8 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [user-service, payment-gateway-service, transaction-service, fraud-detection-service, notification-service, reporting-service]
-    
+        service: [user-service, payment-gateway-service, transaction-service, fraud-detection-service, notification-service, reporting-service, ui]
     steps:
     - uses: actions/checkout@v4
 
@@ -23,8 +22,13 @@ jobs:
         distribution: 'temurin'
         cache: maven
 
-    - name: Build with Maven
-      run: mvn -B package --file microservices/${{ matrix.service }}/pom.xml
+    - name: Build with Maven (if present)
+      run: |
+        if [ -f microservices/${{ matrix.service }}/pom.xml ]; then
+          mvn -B package --file microservices/${{ matrix.service }}/pom.xml
+        else
+          echo "No pom.xml for '${{ matrix.service }}', skipping Maven build"
+        fi
 
     # - name: SonarQube Scan
     #   uses: sonarsource/sonarqube-scan-action@master
@@ -62,24 +66,24 @@ jobs:
         docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.service }}:${{ github.sha }}
         docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.service }}:latest
 
-  update-gitops:
-    needs: build-and-test
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+  # update-gitops:
+  #   needs: build-and-test
+  #   runs-on: ubuntu-latest
+  #   if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        repository: ${{ github.repository_owner }}/gitops-repo
-        token: ${{ secrets.GITOPS_REPO_TOKEN }}
+  #   steps:
+  #   - uses: actions/checkout@v4
+  #     with:
+  #       repository: ${{ github.repository_owner }}/gitops-repo
+  #       token: ${{ secrets.GITOPS_REPO_TOKEN }}
 
-    - name: Update Image Tag in Helm Values
-      run: |
-        for service in user-service payment-gateway-service transaction-service fraud-detection-service notification-service reporting-service; do
-          sed -i "s/tag: .*/tag: ${{ github.sha }}/" charts/$service/values.yaml
-        done
-        git config --global user.email "devops@example.com"
-        git config --global user.name "DevOps Architect"
-        git add .
-        git commit -m "Update image tags to ${{ github.sha }}"
-        git push
+  #   - name: Update Image Tag in Helm Values
+  #     run: |
+  #       for service in user-service payment-gateway-service transaction-service fraud-detection-service notification-service reporting-service; do
+  #         sed -i "s/tag: .*/tag: ${{ github.sha }}/" charts/$service/values.yaml
+  #       done
+  #       git config --global user.email "devops@example.com"
+  #       git config --global user.name "DevOps Architect"
+  #       git add .
+  #       git commit -m "Update image tags to ${{ github.sha }}"
+  #       git push
