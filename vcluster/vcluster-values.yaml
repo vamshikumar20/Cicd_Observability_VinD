@@ -1,0 +1,36 @@
+# vCluster configuration for production-ready payment application
+vcluster:
+  image: alpine:3.18
+  resources:
+    limits:
+      cpu: 2
+      memory: 4Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi
+
+# Enable synchronization of specific resources
+sync:
+  ingresses:
+    enabled: true
+  services:
+    enabled: true
+  configmaps:
+    enabled: true
+  secrets:
+    enabled: true
+  persistentvolumes:
+    enabled: true
+  storageclasses:
+    enabled: true
+
+# Use an external database for the vCluster control plane (optional but recommended for prod)
+# embeddedDatabase:
+#   enabled: false
+
+# Isolation settings
+isolation:
+  enabled: true
+  podSecurityStandard: restricted
+  nodeSelector:
+    workload-type: payment-app

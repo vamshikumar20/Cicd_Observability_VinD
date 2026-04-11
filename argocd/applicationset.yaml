@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: payment-app-microservices
+  namespace: argocd
+spec:
+  generators:
+  - list:
+      elements:
+        - service: user-service
+        - service: payment-gateway-service
+        - service: transaction-service
+        - service: fraud-detection-service
+        - service: notification-service
+        - service: reporting-service
+  template:
+    metadata:
+      name: '{{service}}'
+    spec:
+      project: default
+      source:
+        repoURL: 'https://github.com/{{github_username}}/gitops-repo.git'
+        targetRevision: HEAD
+        path: 'charts/{{service}}'
+      destination:
+        server: 'https://kubernetes.default.svc'
+        namespace: 'payment-app'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
