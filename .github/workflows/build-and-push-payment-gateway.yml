@@ -2,7 +2,7 @@ name: Build and Push payment-gateway-service
 
 on:
   push:
-    # branches: [ main ]
+    # branches: [ main ] 
   workflow_dispatch:
 
 jobs:
